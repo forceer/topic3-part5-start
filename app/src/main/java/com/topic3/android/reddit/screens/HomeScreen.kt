@@ -3,13 +3,25 @@ package com.topic3.android.reddit.screens
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.Card
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -20,6 +32,8 @@ import androidx.compose.ui.Alignment
 import com.topic3.android.reddit.domain.model.PostModel
 import com.topic3.android.reddit.viewmodel.MainViewModel
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -31,6 +45,33 @@ import com.topic3.android.reddit.domain.model.PostType
 import com.topic3.android.reddit.views.TrendingTopicView
 import java.util.Timer
 import kotlin.concurrent.schedule
+
+private val trendingItems = listOf( TrendingTopicModel(
+    "Compose Tuturial",
+    R.drawable.jetpack_composer
+),
+    TrendingTopicModel(
+        "Compose Animations",
+        R.drawable.jetpack_compose_animations
+    ),
+    TrendingTopicModel(
+
+        "Compose Migration",
+        R.drawable.compose_migration_crop
+    ),
+    TrendingTopicModel(
+        "DataStore Tutorial",
+        R.drawable.data_storage
+    ),
+    TrendingTopicModel(
+        "Android Animations",
+        R.drawable.android_animations
+    ),
+    TrendingTopicModel(
+        "Deep Links in Android",
+        R.drawable.deeplinking
+    )
+)
 
 @Composable
 fun HomeScreen(viewModel: MainViewModel) {
@@ -68,6 +109,60 @@ fun HomeScreen(viewModel: MainViewModel) {
         }
     }
 }
+
+@Composable
+private fun TrendingTopics(
+    trendingTopic: List<TrendingTopicModel>,
+    modifier: Modifier = Modifier
+){
+    Card(
+        shape = MaterialTheme.shapes.large,
+        modifier = modifier
+    ){
+        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+            Row(
+                modifier =Modifier.padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                Icon(
+                    modifier = Modifier.size(16.dp),
+                    imageVector = Icons.Filled.Star,
+                    tint = Color.Blue,
+                    contentDescription = "Star Icon"
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Trending Today",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyRow(
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    top = 8.dp,
+                    end = 16.dp
+                ),
+                content = {
+                    itemsIndexed(
+                        items = trendingTopic,
+                        itemContent = {index,
+                                trendingModel ->
+                            TrendingTopic(trendingModel)
+                            if (index != trendingTopic.lastIndex){
+                                Spacer(modifier = Modifier.width(8.dp))
+                            }
+                        }
+                    )
+                }
+            )
+        }
+    }
+}
+
+
+
 private data class HomeScreenItem(
     val type: HomeScreenItemType,
     val post: PostModel? = null
@@ -90,6 +185,12 @@ private fun TrendingTopic(trendingTopic: TrendingTopicModel){
             image = trendingTopic.imageRes
         }
     })
+}
+
+@Preview
+@Composable
+private fun TrendingTopicsPreview(){
+    TrendingTopics(trendingTopic = trendingItems)
 }
 
 @Preview(showBackground = true)

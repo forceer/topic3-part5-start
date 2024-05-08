@@ -4,47 +4,45 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.topic3.android.reddit.components.ImagePost
+import com.topic3.android.reddit.components.TextPost
+import com.topic3.android.reddit.domain.model.PostModel
+import com.topic3.android.reddit.domain.model.PostType
+import com.topic3.android.reddit.viewmodel.MainViewModel
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.Card
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.runtime.Composable
+import androidx.compose.material.Icon
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import com.topic3.android.reddit.domain.model.PostModel
-import com.topic3.android.reddit.viewmodel.MainViewModel
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.topic3.android.reddit.R
-import com.topic3.android.reddit.components.ImagePost
-import com.topic3.android.reddit.components.JoinedToast
-import com.topic3.android.reddit.components.TextPost
-import com.topic3.android.reddit.domain.model.PostType
 import com.topic3.android.reddit.views.TrendingTopicView
 import java.util.Timer
 import kotlin.concurrent.schedule
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+
 
 private val trendingItems = listOf( TrendingTopicModel(
     "Compose Tuturial",
@@ -83,36 +81,63 @@ fun HomeScreen(viewModel: MainViewModel) {
             Timer().schedule(3000) { isToastVisible = false }
         }
     }
+    val homeScreenItems = mapHomeScreenItems(posts)
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
-                .background(color = MaterialTheme.colors.secondary)
-        ) {
-            items(posts) {
-                if (it.type == PostType.TEXT) {
-                    TextPost(it, onJoinButtonClick = onJoinClickAction)
-                } else {
-                    ImagePost(it, onJoinButtonClick = onJoinClickAction)
-                }
-                Spacer(
-                    modifier = Modifier
-                        .height(6.dp)
-                )
+                .background(color = MaterialTheme.colors.secondary),
+            content = {
+                items(
+                    items = homeScreenItems,
+                    itemContent = { item ->
+                        if (item.type == HomeScreenItemType.TRENDING) {
+                            TrendingTopics(
+                                trendingTopics = trendingItems,
+                                modifier = Modifier.padding(
+                                    top = 16.dp, bottom = 6.dp
+                                )
+                            )
+                        } else if (item.post != null) {
+                            val post = item.post
+                            if (post.type == PostType.TEXT) {
+                                TextPost(
+                                    post = post,
+                                    onJoinButtonClick = onJoinClickAction
+                                )
+                            } else {
+                                ImagePost(
+                                    post = post,
+                                    onJoinButtonClick = onJoinClickAction
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                        }
+                    })
             }
-        }
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 16.dp)
-        ){
-            JoinedToast(visible = isToastVisible)
-        }
+        )
     }
+}
+
+private fun mapHomeScreenItems(
+    posts: List<PostModel>
+): List<HomeScreenItem>{
+    val homeScreenItem = mutableListOf<HomeScreenItem>()
+
+    homeScreenItem.add(
+        HomeScreenItem(HomeScreenItemType.TRENDING)
+    )
+
+    posts.forEach{post ->
+    homeScreenItem.add(
+        HomeScreenItem(HomeScreenItemType.POST, post)
+        )
+    }
+    return homeScreenItem
 }
 
 @Composable
 private fun TrendingTopics(
-    trendingTopic: List<TrendingTopicModel>,
+    trendingTopics: List<TrendingTopicModel>,
     modifier: Modifier = Modifier
 ){
     Card(
@@ -146,11 +171,11 @@ private fun TrendingTopics(
                 ),
                 content = {
                     itemsIndexed(
-                        items = trendingTopic,
+                        items = trendingTopics,
                         itemContent = {index,
                                 trendingModel ->
                             TrendingTopic(trendingModel)
-                            if (index != trendingTopic.lastIndex){
+                            if (index != trendingTopics.lastIndex){
                                 Spacer(modifier = Modifier.width(8.dp))
                             }
                         }
@@ -190,7 +215,7 @@ private fun TrendingTopic(trendingTopic: TrendingTopicModel){
 @Preview
 @Composable
 private fun TrendingTopicsPreview(){
-    TrendingTopics(trendingTopic = trendingItems)
+    TrendingTopics(trendingTopics = trendingItems)
 }
 
 @Preview(showBackground = true)
